@@ -3,7 +3,6 @@ import os
 import re
 from collections import Counter
 from urllib.parse import unquote
-
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -14,19 +13,23 @@ class Scraper:
     Class for processing single page/file for provided phrase
     """
 
-    def __init__(self, wiki_url, phrase, use_local_html_file_instead=False):
+    def __init__(self, wiki_url, phrase=None, use_local_html_file_instead=False):
         """
         :param wiki_url: URL link to the wiki (or path to a local file)
                          which will be scraped from
         :type wiki_url: any
 
-        :param phrase: Title of the wiki article page which will be scraped
+        :param phrase: Title of the wiki article page which will be scraped.
+                       (Not required if use_local_htl_file_instead is True)
         :type phrase: str
 
         :param use_local_html_file_instead: True/False if wiki_url is a path to
                                             a single local HTML file.
         :type use_local_html_file_instead: bool
         """
+        if not use_local_html_file_instead and phrase is not None:
+            raise ValueError("Phrase can only be None when "
+                             "use_local_html_file_instead is set to True")
         # Check phrase
         if not phrase or phrase == '':
             raise ValueError(f"Invalid phrase: {phrase}")
