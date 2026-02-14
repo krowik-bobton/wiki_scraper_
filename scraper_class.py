@@ -196,7 +196,6 @@ class Scraper:
             html_string = str(target_table)     # convert target_table content into a string
             html_file = io.StringIO(html_string)
             # if a header parameter is x, then xth row becomes a columns header (if header == None, then there's no columns header)
-            # https://pandas.pydata.org/docs/reference/api/pandas.read_html.html
             # index_col=0 treats the first column as a row header
             dfs = pd.read_html(html_file, header=header_arg, index_col=0) # read_html needs HTML file, not a string
             # dfs now holds objects of pandas.DataFrame type. We can convert it to CSV easily (dfs[0].to_csv("tab.csv")
@@ -208,12 +207,11 @@ class Scraper:
             print(f"Error while reading {table_number} table from {self.exact_url}: {e}")
         return None
 
-
     def count_words(self):
         """
-        Counts the frequency of each word in the provided article (skips common page elements like a menu etc.),
-        creates or updates a cumulative JSON file with these counts.
-        :return:
+        Counts the frequency of each word in the provided article (skips common page elements like a menu etc.)
+        :return: Counter of how many times each word occurred in the article or None if couldn't find content.
+        :rtype: Counter | None
         """
 
         if not self.soup:
@@ -228,7 +226,7 @@ class Scraper:
         main_soup = self.soup.find("div", class_="mw-parser-output")
         if not main_soup:
             print("Content not found.")
-            return
+            return None
         main_text = main_soup.get_text().strip()
         # Add title text to the main text and convert the resulting text to the lowercase
         main_text = (main_text + " " + title_text).lower()
@@ -245,29 +243,4 @@ class Scraper:
                 words.append(cleaned)
 
         current_counts = Counter(words)
-
-        # Create/Update JSON file
-        json_path = "./word-counts.json"
-        total_counts = Counter()
-
-        # If JSON file exists, load its data and add current counts.
-        if os.path.exists(json_path):
-            try:
-                with open(json_path, 'r', encoding='utf-8') as f:
-                    old_data = json.load(f)
-                    total_counts.update(old_data)
-            except (json.JSONDecodeError, ValueError):
-                # If a JSON file is empty or damaged, ignore its content and override it with new values.
-                pass
-
-        # Combine two Counters
-        total_counts = total_counts + current_counts
-
-        try:
-            with open(json_path, 'w', encoding='utf-8') as file:
-                # ensure_ascii=False is crucial for dealing with non-English characters.
-                # indent=4 makes a file easily readable.
-                json.dump(total_counts, file, indent=4, ensure_ascii=False)
-        except IOError as e:
-            print(f"Error while writing to {json_path}: {e}")
-        return
+        return current_counts
