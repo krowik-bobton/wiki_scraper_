@@ -6,13 +6,52 @@ from queue import Queue
 import pandas as pd
 from scraper_class import Scraper
 
+
+def save_counter_to_json(counter, json_path):
+    """
+    Saves a Counter object to a JSON file.
+    :param counter: The Counter object to save.
+    :param json_path: Path to the JSON file.
+    """
+    try:
+        with open(json_path, 'w', encoding='utf-8') as file:
+            # ensure_ascii=False is crucial for dealing with non-English
+            # characters.
+            # indent=4 makes a file easily readable.
+            json.dump(counter, file, indent=4, ensure_ascii=False)
+    except IOError as e:
+        print(f"Error while writing to {json_path}: {e}")
+
+
+def load_counter_from_json(json_path):
+    """
+    Loads a Counter object from a JSON file.
+    :param json_path: Path to the JSON file.
+    :return: A Counter object.
+    """
+    counter = Counter()
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                old_data = json.load(f)
+                counter.update(old_data)
+        except (json.JSONDecodeError, ValueError):
+            # If a JSON file is empty or damaged, ignore its content
+            pass
+    return counter
+
+
 class ScrapingManager:
+    # Path to a JSON file which contains numbers of occurrences for words
+    # encountered when running count_words
+    JSON_PATH = './word-counts.json'
 
     def __init__(self, wiki_url, use_local_html_file_instead=False):
         """
         Initialize ScrapingManager class
         :param wiki_url: URL to the main wiki site or path to a local file.
         :param use_local_html_file_instead: Whether to use a local HTML file.
+                                            Default=False
         """
         self.wiki_url = wiki_url
         self.use_local_file = use_local_html_file_instead
@@ -45,19 +84,7 @@ class ScrapingManager:
         # Load the initial content of the JSON file and update it as the BFS
         # goes. At the end of this function load new content only once to the
         # JSON file.
-        json_path = './word-counts.json'
-        initial_json_content = Counter()
-        if os.path.exists(json_path):
-            try:
-                with open(json_path, 'r', encoding='utf-8') as f:
-                    old_data = json.load(f)
-                    initial_json_content.update(old_data)
-            except (json.JSONDecodeError, ValueError):
-                # If a JSON file is empty or damaged, ignore its content and
-                # override it with new values.
-                pass
-        # This value will be updated for each processed article
-        total_counts = initial_json_content
+        total_counts = load_counter_from_json(self.JSON_PATH)
 
         while not waiting_phrases_queue.empty():
             (current_phrase, depth_of_current_phrase) = \
@@ -104,15 +131,23 @@ class ScrapingManager:
                     if waiting_time > 0:
                         time.sleep(waiting_time)
 
-        # End of the BFS. Check JSON files
-        try:
-            with open(json_path, 'w', encoding='utf-8') as file:
-                # ensure_ascii=False is crucial for dealing with non-English
-                # characters.
-                # indent=4 makes a file easily readable.
-                json.dump(total_counts, file, indent=4, ensure_ascii=False)
-        except IOError as e:
-            print(f"Error while writing to {json_path}: {e}")
+        # End of the BFS. Update JSON files
+        save_counter_to_json(total_counts, self.JSON_PATH)
+
+    def count_words(self, phrase=None):
+        if not self.use_local_file and phrase is None:
+            raise ValueError("Phrase can only be None when "
+                             "use_local_html_file_instead is set to True")
+        scraper = Scraper(self.wiki_url, phrase, self.use_local_file)
+
+        total_counter = load_counter_from_json(self.JSON_PATH)
+            
+        current_counter = scraper.count_words()
+        
+        if not current_counter:
+            return
+        total_counter.update(current_counter)
+        save_counter_to_json(total_counter, self.JSON_PATH)
 
     def get_table(self, phrase, table_number, first_row_header=False):
         """
