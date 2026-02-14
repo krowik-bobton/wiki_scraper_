@@ -3,6 +3,8 @@ import json
 import os
 import re
 from collections import Counter
+from urllib.parse import unquote
+
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -43,6 +45,33 @@ class Scraper:
         else:
             self.exact_url = f"{wiki_url}/{phrase.replace(" ", '_')}"
 
+    def get_children_phrases(self):
+        """
+        Extracts and returns all relevant child phrases from the parsed HTML content.
+        :return: A list of strings, where each string represents the title of an article
+            linked from the current page, decoded and formatted. Returns `None` if the
+            required container is not present in the HTML content.
+        :rtype: list[str] | None
+        """
+        content = self.soup.find('div', class_='mw-parser-output')
+        if not content:
+            return None
+        result_phrases = []
+        # Get all the links to other articles. We search for links which href starts with '/wiki/'
+        for link in content.find_all('a', href=re.compile('^/wiki/')):
+            href = link['href']
+            # Get the title of the article that the link leads to
+            # Some titles are percent encoded (e.g. Pokémon is encoded as Pok%C3%A9mon), and the original
+            # title can be decoded using the unquote function.
+            link_title = href.removeprefix('/wiki/')
+            link_title = unquote(link_title)
+            link_title = link_title.replace('_', ' ')
+            # Links to the actual wiki sites have a title parameter equal to link_title.
+            # If there's no such title for the link, it means that it isn't a relevant link (i.e., image)
+            if link.get('title'):
+                if link.get('title') == link_title:
+                    result_phrases.append(link_title)
+        return result_phrases
 
     def fetch_data_from_wiki(self):
         """
@@ -169,7 +198,7 @@ class Scraper:
             # if a header parameter is x, then xth row becomes a columns header (if header == None, then there's no columns header)
             # https://pandas.pydata.org/docs/reference/api/pandas.read_html.html
             # index_col=0 treats the first column as a row header
-            dfs = pd.read_html(html_file, header=header_arg, index_col=0) # read_html needs html file, not a string
+            dfs = pd.read_html(html_file, header=header_arg, index_col=0) # read_html needs HTML file, not a string
             # dfs now holds objects of pandas.DataFrame type. We can convert it to CSV easily (dfs[0].to_csv("tab.csv")
             if dfs:
                 return dfs[0]
@@ -242,5 +271,3 @@ class Scraper:
         except IOError as e:
             print(f"Error while writing to {json_path}: {e}")
         return
-
-
