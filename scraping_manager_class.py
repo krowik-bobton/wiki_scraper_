@@ -33,7 +33,7 @@ class ScrapingManager:
                 if depth_of_current_phrase <= max_depth:
                     print(f"Currently processing: {current_phrase}")
 
-                    # Get the data from article for current_phrase
+                    # Get the data from the article for current_phrase
                     current_scraper = Scraper(self.wiki_url, current_phrase)
                     try:
                         current_scraper.fetch_data()
@@ -43,32 +43,20 @@ class ScrapingManager:
                         continue
                     # If fetching was successful, proceed to process the article for current_phrase
                     visited.add(current_phrase)
-                    # Extract the main div of the article
-                    content = current_scraper.soup.find('div', class_='mw-parser-output')
-                    if not content:
-                        return
+                    # Get titles of all articles linked from the current phrase
+                    children_phrases = current_scraper.get_children_phrases()
+                    if not children_phrases:
+                        continue
+                    for phrase in children_phrases:
+                        if phrase not in visited and depth_of_current_phrase < max_depth:
+                            # Add this phrase to the BFS queue
+                            waiting_phrases_queue.put([phrase, depth_of_current_phrase + 1])
 
-                    # Get all the links to other articles. We search for links which href starts with '/wiki/'
-                    for link in content.find_all('a', href=re.compile('^/wiki/')):
-                        href = link['href']
-                        # Get the title of the article that the link leads to
-                        # Some titles are percent encoded (e.g. Pokémon is encoded as Pok%C3%A9mon), and the original
-                        # title can be decoded using the unquote function.
-                        link_title = href.removeprefix('/wiki/')
-                        link_title = unquote(link_title)
-                        link_title = link_title.replace('_', ' ')
-                        # Links to the actual wiki sites have a title parameter equal to link_title.
-                        # If there's no such title for the link, it means that it isn't a relevant link (i.e., image)
-                        if link.get('title'):
-                            if link.get('title') == link_title:
-                                if link_title not in visited and depth_of_current_phrase < max_depth:
-                                    # Add this phrase to the BFS queue
-                                    waiting_phrases_queue.put([link_title, depth_of_current_phrase + 1])
+
 
                     current_scraper.count_words()
 
                     # Wait for waiting_time seconds
                     if waiting_time > 0:
                         time.sleep(waiting_time)
-
 
