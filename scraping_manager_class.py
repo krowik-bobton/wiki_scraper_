@@ -149,13 +149,13 @@ class ScrapingManager:
         total_counter.update(current_counter)
         save_counter_to_json(total_counter, self.JSON_PATH)
 
-    def get_table(self, phrase, table_number, first_row_header=False):
+    def get_table(self, table_number, phrase=None, first_row_header=False):
         """
         Extracts a specified table from a webpage or local file using a
         scraper, saves it as a CSV file, and prints numbers of occurrences of
         each unique value found in the table (excluding the headers)
-        :param phrase: A string used to identify and name the CSV file. All
-                       spaces in the string are replaced with underscores.
+        :param phrase: A string used to identify and name the CSV file.
+                       (Optional when use_local_html_file_instead is True)
         :type phrase: str
         :param table_number: The index of the table to extract. The index is
                              zero-based.
@@ -164,6 +164,10 @@ class ScrapingManager:
                                  should be used as column headers.
         :type first_row_header: bool
         """
+        if not self.use_local_file and phrase is None:
+            raise ValueError("Phrase can only be None when "
+                             "use_local_html_file_instead is set to True")
+
         my_scraper = Scraper(self.wiki_url, phrase, self.use_local_file)
         df = my_scraper.get_table(table_number, first_row_header)
         if df is not None:
@@ -184,5 +188,21 @@ class ScrapingManager:
             print(results_table)
         else:
             print("Table couldn't be loaded")
+
+    def get_summary(self, phrase=None):
+        """
+        Prints the first paragraph from a webpage or local HTML file.
+        :param phrase:
+        """
+        if not self.use_local_file and phrase is None:
+            raise ValueError("Phrase can only be None when "
+                             "use_local_html_file_instead is set to True")
+        scraper = Scraper(self.wiki_url, phrase, self.use_local_file)
+        summary_text = scraper.get_summary()
+        if summary_text:
+            print(summary_text)
+        else:
+            print(f"Nothing found for {phrase}")
+
 
 

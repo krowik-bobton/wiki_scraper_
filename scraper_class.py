@@ -27,11 +27,11 @@ class Scraper:
                                             a single local HTML file.
         :type use_local_html_file_instead: bool
         """
-        if not use_local_html_file_instead and phrase is not None:
+        if not use_local_html_file_instead and phrase is None:
             raise ValueError("Phrase can only be None when "
                              "use_local_html_file_instead is set to True")
         # Check phrase
-        if not phrase or phrase == '':
+        if phrase == '':
             raise ValueError(f"Invalid phrase: {phrase}")
         if not wiki_url:
             raise ValueError("Wiki URL is None!")
