@@ -6,7 +6,7 @@ def summary_test_for_team_rocket():
     Test --summary functionality with a local HTML file.
     """
     try:
-        scraping_manager = ScrapingManager("Team_Rocket_integration_test.html", True)
+        scraping_manager = ScrapingManager("Team_Rocket_test.html", True)
         summary=scraping_manager.get_summary()
         assert summary.startswith("Team Rocket"), \
             f"Summary should start with 'Team Rocket', got: {summary}"

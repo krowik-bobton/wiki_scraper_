@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from wordfreq import top_n_list, word_frequency
 
-
 def load_word_counts(json_path):
     """
     Load word counts from a JSON file.
@@ -25,7 +24,6 @@ def load_word_counts(json_path):
             print(f"File {json_path} is empty")
             return None
     return word_counts_dict
-
 
 def get_frequency_df(word_counts_dict, mode, count, lang='en'):
     """
@@ -101,7 +99,6 @@ def get_frequency_df(word_counts_dict, mode, count, lang='en'):
 
     return pd.DataFrame(data)
 
-
 def create_chart(df, chart_path):
     """
     Create a chart for the provided DataFrame and save it to a file with a
@@ -137,7 +134,6 @@ def create_chart(df, chart_path):
         print(f"Chart couldn't be saved in {chart_path}, error message: {e}")
     finally:
         plt.close()
-
 
 def analyze_relative_word_frequency(mode, count, chart_path=None):
     """
