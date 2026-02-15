@@ -134,6 +134,14 @@ class ScrapingManager:
         save_counter_to_json(total_counts, self.JSON_PATH)
 
     def count_words(self, phrase=None):
+        """
+        Counts the occurrences of words in the specified phrase or in a locally
+        provided HTML file, updates or creates the JSON file with the counter.
+
+        :param phrase: The phrase to count words from, or None if using a local
+            HTML file instead.
+        :type phrase: str or None
+        """
         if not self.use_local_file and phrase is None:
             raise ValueError("Phrase can only be None when "
                              "use_local_html_file_instead is set to True")
