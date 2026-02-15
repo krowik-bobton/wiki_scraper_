@@ -3,7 +3,6 @@ import os
 import time
 from collections import Counter
 from queue import Queue
-import pandas as pd
 from scraper_class import Scraper
 
 
@@ -20,7 +19,7 @@ def save_counter_to_json(counter, json_path):
             # indent=4 makes a file easily readable.
             json.dump(counter, file, indent=4, ensure_ascii=False)
     except IOError as e:
-        print(f"Error while writing to {json_path}: {e}")
+        raise IOError(f"Error while writing to {json_path}: {e}")
 
 
 def load_counter_from_json(json_path):
@@ -152,7 +151,7 @@ class ScrapingManager:
     def get_table(self, table_number, phrase=None, save_as=None, first_row_header=False):
         """
         Extracts a specified table from a webpage or local file using a
-        scraper, saves it as a CSV file, and prints numbers of occurrences of
+        scraper, saves it as a CSV file, and returns df of occurrences of
         each unique value found in the table (excluding the headers).
         The first column is always treated as a header of rows.
         :param table_number: The index of the table to extract. The index is
@@ -168,6 +167,8 @@ class ScrapingManager:
         :param first_row_header: Indicates whether the first row of the table
                                  should be used as column headers.
         :type first_row_header: bool
+        :return: DataFrame with wanted table or None if the table wasn't found
+        :type: DataFrame | None
         """
         if self.use_local_file:
             # offline mode
@@ -200,7 +201,6 @@ class ScrapingManager:
             phrase_for_scraper = phrase
             csv_name = phrase
 
-
         my_scraper = Scraper(self.wiki_url, phrase_for_scraper, self.use_local_file)
         df = my_scraper.get_table(table_number, first_row_header)
         if df is not None:
@@ -209,33 +209,23 @@ class ScrapingManager:
             try:
                 df.to_csv(f"{csv_name}.csv", index=True)
             except Exception as e:
-                print(f"Couldn't save table to {csv_name}.csv. Error : {e}")
-
-            print("--- Numbers of each values in a table ---")
-            # df.values converts pandas table into a numpy matrix
-            # (without headers)
-            # .flatten(), flatten this matrix into a single list of cells.
-            cells_list = df.values.flatten()
-            counts = pd.Series(cells_list).value_counts()
-            results_table = counts.to_frame(name="Number of occurrences")
-            print(results_table)
-        else:
-            print("Table couldn't be loaded")
+                raise Exception(f"Couldn't save table to {csv_name}.csv. Error : {e}")
+        # Can be None if df is None
+        return df
 
     def get_summary(self, phrase=None):
         """
-        Prints the first paragraph from a webpage or local HTML file.
-        :param phrase:
+        Returns the first paragraph from a webpage or local HTML file.
+        :param phrase: Title of the Wiki article. Is ignored and can
+                       be None if using the local html file.
+        :return: summary text
+        :rtype: str | None
         """
         if not self.use_local_file and phrase is None:
             raise ValueError("Phrase can only be None when "
                              "use_local_html_file_instead is set to True")
         scraper = Scraper(self.wiki_url, phrase, self.use_local_file)
-        summary_text = scraper.get_summary()
-        if summary_text:
-            print(summary_text)
-        else:
-            print(f"Nothing found for {phrase}")
+        return scraper.get_summary()
 
 
 

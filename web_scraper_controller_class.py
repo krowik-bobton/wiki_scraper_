@@ -1,3 +1,5 @@
+import pandas as pd
+
 from scraping_manager_class import ScrapingManager
 from analyze_relative_word_frequency import analyze_relative_word_frequency
 
@@ -6,9 +8,11 @@ class WebScraperController:
 
     def __init__(self, args):
         self.args = args
-        # WebScraperController is only for online queries
-        self.scraping_manager = ScrapingManager(self.BASE_URL,
-                                             use_local_html_file_instead=False)
+        # By default this class doesn't operate on local files
+        self.scraping_manager = ScrapingManager(
+            wiki_url=self.BASE_URL,
+            use_local_html_file_instead=False
+        )
 
     def execute(self):
         """
@@ -17,7 +21,11 @@ class WebScraperController:
         """
         # 1) --summary
         if self.args.summary:
-            self.scraping_manager.get_summary(self.args.summary)
+            summary_text=self.scraping_manager.get_summary(self.args.summary)
+            if summary_text:
+                print(summary_text)
+            else:
+                print(f"Nothing found for {self.args.summary}")
 
         # 2) --table
         elif self.args.table:
@@ -29,11 +37,23 @@ class WebScraperController:
             if self.args.first_row_is_a_header:
                 first_row_is_a_header = True
 
-            self.scraping_manager.get_table(
-                table_number=self.args.number,
-                phrase=self.args.table,
-                first_row_header=first_row_is_a_header
-            )
+            df = self.scraping_manager.get_table(
+                    table_number=self.args.number,
+                    phrase=self.args.table,
+                    first_row_header=first_row_is_a_header
+                )
+            if df is None:
+                print("Table wasn't found")
+            else:
+                print("--- Numbers of each values in a table ---")
+                # df.values converts pandas table into a numpy matrix
+                # (without headers)
+                # .flatten(), flatten this matrix into a single list of cells.
+                cells_list = df.values.flatten()
+                counts = pd.Series(cells_list).value_counts()
+                results_table = counts.to_frame(name="Number of occurrences")
+                print(results_table)
+
 
         elif self.args.count_words:
             self.scraping_manager.count_words(self.args.count_words)

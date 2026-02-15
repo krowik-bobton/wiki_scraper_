@@ -83,17 +83,16 @@ class Scraper:
 
     def fetch_data_from_wiki(self):
         """
-        Fetch data from Wiki page with title which is equal to Scraper's phrase
-        :return: True/False depending on the success of fetching the data
+        Fetch data from the Wiki page with a title which is equal to Scraper's phrase
+        :return: True in case of a success, otherwise raises an Exception
         """
 
-        headers = {"User-Agent": "John Pork"}
+        headers = {"User-Agent": "WikiScraperAcademicProject"}
         try:
             response = requests.get(self.exact_url, headers=headers)
             # Check if such site exists (404 - Not Found, 200 - OK)
             if response.status_code == 404:
-                print(f"{self.phrase} not found on {self.base_url}")
-                return False
+                raise ValueError(f"{self.phrase} not found on {self.base_url}")
 
             # If an error occurred, return HTTPError object
             response.raise_for_status()
@@ -104,20 +103,18 @@ class Scraper:
             return True
 
         except Exception as e:
-            print(f"Error while fetching the data: {e}")
-            return False
+            raise Exception(f"Error while fetching the data: {e}")
 
     def fetch_data_from_local_file(self):
         """
         Fetch data from the local HTML file
-        :return: True/False depending on the success of fetching the data
+        :return: True in case of a success, otherwise raises an Exception
         """
         try:
             with open(self.exact_url, 'r', encoding='utf-8') as f:
                 self.soup = BeautifulSoup(f, "html.parser")
         except Exception as e:
-            print(f"Error {e} while accessing the file: {self.exact_url}")
-            return False
+            raise Exception(f"Error {e} while accessing the file: {self.exact_url}")
         return True
 
     def fetch_data(self):
@@ -194,7 +191,7 @@ class Scraper:
         :return: A pandas DataFrame object containing the desired table's data
             if successfully extracted, or None if the table is unavailable or
             an error occurs during the extraction.
-        :rtype: pandas.DataFrame or None
+        :rtype: DataFrame | None
         """
 
         if not self.soup:
@@ -204,9 +201,8 @@ class Scraper:
         tables = self.soup.find_all('table')
 
         if len(tables) < table_number:
-            print(f"Asked for {table_number} table, but only {len(tables)} "
+            raise ValueError(f"Asked for {table_number} table, but only {len(tables)} "
                   f"are available.")
-            return None
 
         target_table = tables[table_number - 1]  # table_number is indexed from 1
 
@@ -225,9 +221,8 @@ class Scraper:
             else:
                 return None
         except Exception as e:
-            print(f"Error while reading {table_number} table from "
+            raise Exception(f"Error while reading {table_number} table from "
                   f"{self.exact_url}: {e}")
-        return None
 
     def count_words(self):
         """
@@ -253,7 +248,7 @@ class Scraper:
 
         main_soup = self.soup.find("div", class_="mw-parser-output")
         if not main_soup:
-            print("Content not found.")
+            # Content wasn't found
             return None
         main_text = main_soup.get_text().strip()
         # Add title text to the main text and convert resulting text to lower
