@@ -58,7 +58,7 @@ class Scraper:
         if not self.soup:
             self.fetch_data()
 
-        content = self.soup.find('div', class_='mw-parser-output')
+        content = self.soup.find('div', id='mw-content-text')
         if not content:
             return None
         result_phrases = []
@@ -73,12 +73,7 @@ class Scraper:
             link_title = href.removeprefix('/wiki/')
             link_title = unquote(link_title)
             link_title = link_title.replace('_', ' ')
-            # Links to the actual wiki sites have a title parameter equal to
-            # link_title. If there's no such title for the link, it means that
-            # it isn't a relevant link (i.e., image)
-            if link.get('title'):
-                if link.get('title') == link_title:
-                    result_phrases.append(link_title)
+            result_phrases.append(link_title)
         return result_phrases
 
     def fetch_data_from_wiki(self):
@@ -248,7 +243,7 @@ class Scraper:
         else:
             title_text = ""
 
-        main_soup = self.soup.find("div", class_="mw-parser-output")
+        main_soup = self.soup.find("div", id="mw-content-text")
         if not main_soup:
             # Content wasn't found
             return None
