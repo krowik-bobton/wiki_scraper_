@@ -135,7 +135,7 @@ def create_chart(df, chart_path):
     finally:
         plt.close()
 
-def analyze_relative_word_frequency(mode, count, chart_path=None):
+def analyze_relative_word_frequency(mode, count, json_path='./word-counts.json', chart_path=None):
     """
     Analyzes the relative word frequency from a JSON file and prints
     frequency distribution. Optionally, generates and saves a chart
@@ -147,19 +147,19 @@ def analyze_relative_word_frequency(mode, count, chart_path=None):
     :param count: The number of words to include in the analysis (if this
                   number is larger than the number of available words, then
                   the number of available words is included)
+    :param json_path: Path to the JSON file.
     :param chart_path: Optional path (with PNG extension) to save the
                        generated frequency chart as a file. If None, no
                        chart will be generated.
     :return: None
     """
-    json_path = "./word-counts.json"
-    lang = "en"
-
+    if not json_path:
+        raise ValueError(f"Invalid JSON path: {json_path}")
     word_counts_dict = load_word_counts(json_path)
     if word_counts_dict is None:
         return
 
-    df = get_frequency_df(word_counts_dict, mode, count, lang)
+    df = get_frequency_df(word_counts_dict, mode, count)
     if df.empty:
         print("No data to display.")
         return

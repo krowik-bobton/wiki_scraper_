@@ -43,8 +43,7 @@ def load_counter_from_json(json_path):
 class ScrapingManager:
     # Path to a JSON file which contains numbers of occurrences for words
     # encountered when running count_words
-    JSON_PATH = './word-counts.json'
-
+    DEFAULT_JSON_PATH='./word-counts.json'
     def __init__(self, wiki_url, use_local_html_file_instead=False):
         """
         Initialize ScrapingManager class
@@ -55,13 +54,16 @@ class ScrapingManager:
         self.wiki_url = wiki_url
         self.use_local_file = use_local_html_file_instead
 
-    def auto_count_words(self, starting_phrase, max_depth, waiting_time=0.0):
+    def auto_count_words(self, starting_phrase, max_depth,
+                         waiting_time=0.0, json_path=DEFAULT_JSON_PATH):
         """
         Automatically traverses through linked articles starting from the
         given phrase, counts words in each article and processes linked
         articles up to the maximum depth. Creates or updates JSON file with
         counted values.
 
+        :param json_path: JSON path
+        :type json_path: str
         :param starting_phrase: The initial phrase to start processing from.
         :type starting_phrase: str
         :param max_depth: The maximum depth to traverse from the starting
@@ -83,7 +85,7 @@ class ScrapingManager:
         # Load the initial content of the JSON file and update it as the BFS
         # goes. At the end of this function load new content only once to the
         # JSON file.
-        total_counts = load_counter_from_json(self.JSON_PATH)
+        total_counts = load_counter_from_json(json_path)
 
         while not waiting_phrases_queue.empty():
             (current_phrase, depth_of_current_phrase) = \
@@ -131,9 +133,9 @@ class ScrapingManager:
                         time.sleep(waiting_time)
 
         # End of the BFS. Update JSON files
-        save_counter_to_json(total_counts, self.JSON_PATH)
+        save_counter_to_json(total_counts, json_path)
 
-    def count_words(self, phrase=None):
+    def count_words(self, phrase=None, json_path=DEFAULT_JSON_PATH):
         """
         Counts the occurrences of words in the specified phrase or in a locally
         provided HTML file, updates or creates the JSON file with the counter.
@@ -141,20 +143,22 @@ class ScrapingManager:
         :param phrase: The phrase to count words from, or None if using a local
             HTML file instead.
         :type phrase: str or None
+        :param json_path: Path to a JSON file.
+        :type json_path: str
         """
         if not self.use_local_file and phrase is None:
             raise ValueError("Phrase can only be None when "
                              "use_local_html_file_instead is set to True")
         scraper = Scraper(self.wiki_url, phrase, self.use_local_file)
 
-        total_counter = load_counter_from_json(self.JSON_PATH)
+        total_counter = load_counter_from_json(json_path)
             
         current_counter = scraper.count_words()
         
         if not current_counter:
             return
         total_counter.update(current_counter)
-        save_counter_to_json(total_counter, self.JSON_PATH)
+        save_counter_to_json(total_counter, json_path)
 
     def get_table(self, table_number, phrase=None, save_as=None, first_row_header=False):
         """
