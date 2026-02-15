@@ -17,11 +17,12 @@ class MyTestCase(unittest.TestCase):
         html_content = """
                 <html>
                     <body>
-                        <div class="mw-parser-output">
-                            <p>this is an example of a summary.</p>
-                            <a href="/wiki/first" title="first">Link 1</a>
-                            <a href="/wiki/second" title="second">Link 2</a>
-                            <a href="/wiki/third_link_no_title">Link 3</a>
+                        <div id="mw-content-text" class="mw-body-content">
+                            <div class="mw-parser-output">
+                                <p>this is an example of a summary.</p>
+                                <a href="/wiki/first" title="first">Link 1</a>
+                                <a href="/wiki/second" title="second">Link 2</a>
+                            </div>
                         </div>
                     </body>
                 </html>
@@ -37,7 +38,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_fetching_data_from_not_existing_file_throws_exception(self):
         scraper = Scraper(
-            wiki_url="not_existent_file.html",
+            wiki_url="not_existing_file.html",
             use_local_html_file_instead=True
         )
         with self.assertRaises(FileNotFoundError):
@@ -54,7 +55,6 @@ class MyTestCase(unittest.TestCase):
             use_local_html_file_instead=True
         )
         phrases = scraper.get_children_phrases()
-        # The third link doesn't have a matching title, so it isn't counted
         self.assertEqual(len(phrases), 2)
         self.assertEqual(phrases, ["first", "second"])
 
