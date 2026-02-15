@@ -149,34 +149,67 @@ class ScrapingManager:
         total_counter.update(current_counter)
         save_counter_to_json(total_counter, self.JSON_PATH)
 
-    def get_table(self, table_number, phrase=None, first_row_header=False):
+    def get_table(self, table_number, phrase=None, save_as=None, first_row_header=False):
         """
         Extracts a specified table from a webpage or local file using a
         scraper, saves it as a CSV file, and prints numbers of occurrences of
-        each unique value found in the table (excluding the headers)
-        :param phrase: A string used to identify and name the CSV file.
-                       (Optional when use_local_html_file_instead is True)
-        :type phrase: str
+        each unique value found in the table (excluding the headers).
+        The first column is always treated as a header of rows.
         :param table_number: The index of the table to extract. The index is
                              zero-based.
         :type table_number: int
+        :param phrase: A string used to identify and name the CSV file.
+                       (If using the local HTML file instead is True, this
+                       value is ignored)
+        :type phrase: str
+        :param save_as: Base for the CSV filename. Relevant only if using
+                        the local HTML file instead of connecting with webpage.
+        :type save_as: str
         :param first_row_header: Indicates whether the first row of the table
                                  should be used as column headers.
         :type first_row_header: bool
         """
-        if not self.use_local_file and phrase is None:
-            raise ValueError("Phrase can only be None when "
-                             "use_local_html_file_instead is set to True")
+        if self.use_local_file:
+            # offline mode
+            # phrase is not required (can and should be None)
+            # save_as is required
+            if not save_as:
+                raise ValueError("When using local file, save_as argument is "
+                                 "required to name the output CSV.")
+            if phrase is not None:
+                print(f"Warning, provided phrase: {phrase} for using the"
+                      f" local file, ignoring this value. ")
+            # Phrase to pass to the Scraper constructor
+            phrase_for_scraper = None
+            # Name of the CSV file that will be created/updated
+            csv_name = save_as
 
-        my_scraper = Scraper(self.wiki_url, phrase, self.use_local_file)
+        else:
+            # online mode
+            # phrase is required
+            # (it will also serve as a CSV name)
+            # save_as is ignored
+            if not phrase:
+                raise ValueError("In online mode phrase is "
+                                 "required to find the article.")
+
+            if save_as is not None:
+                print(f"Warning, provided save_as: {save_as}'"
+                      f" is ignored in online mode.")
+
+            phrase_for_scraper = phrase
+            csv_name = phrase
+
+
+        my_scraper = Scraper(self.wiki_url, phrase_for_scraper, self.use_local_file)
         df = my_scraper.get_table(table_number, first_row_header)
         if df is not None:
             # Write df into csv file
-            phrase = phrase.replace(" ", "_")
+            csv_name = csv_name.replace(" ", "_")
             try:
-                df.to_csv(f"{phrase}.csv", index=True)
+                df.to_csv(f"{csv_name}.csv", index=True)
             except Exception as e:
-                print(f"Couldn't save table to {phrase}.csv. Error : {e}")
+                print(f"Couldn't save table to {csv_name}.csv. Error : {e}")
 
             print("--- Numbers of each values in a table ---")
             # df.values converts pandas table into a numpy matrix
