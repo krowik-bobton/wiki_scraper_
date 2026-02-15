@@ -35,9 +35,6 @@ class Scraper:
             raise ValueError(f"Invalid phrase: {phrase}")
         if not wiki_url:
             raise ValueError("Wiki URL is None!")
-        if use_local_html_file_instead:
-            if not os.path.exists(wiki_url):
-                raise FileNotFoundError(f"File {wiki_url} doesn't exist")
         self.phrase = phrase
         self.base_url = wiki_url
         self.read_local_file = use_local_html_file_instead  # Bool value
@@ -58,6 +55,9 @@ class Scraper:
             HTML content.
         :rtype: list[str] | None
         """
+        if not self.soup:
+            self.fetch_data()
+
         content = self.soup.find('div', class_='mw-parser-output')
         if not content:
             return None
@@ -110,6 +110,8 @@ class Scraper:
         Fetch data from the local HTML file
         :return: True in case of a success, otherwise raises an Exception
         """
+        if not os.path.exists(self.exact_url):
+            raise FileNotFoundError(f"File {self.exact_url} doesn't exist")
         try:
             with open(self.exact_url, 'r', encoding='utf-8') as f:
                 self.soup = BeautifulSoup(f, "html.parser")
