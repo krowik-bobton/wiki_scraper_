@@ -84,6 +84,16 @@ Analyzes and compares the word frequencies stored in your local JSON file agains
   ```bash
   python wiki_scraper.py --analyze-relative-word-frequency --mode article --count 20 --chart frequency_chart.png
   ```
+  
+---
+
+## Functional classes and files
+
+- **wiki_scraper.py** Users can interact with this file through command line.
+- **Scraper class:** implemented in `src/wiki_scraper/scraper_class.py`. Handles scraper logic for the single article on the Wiki. Can perform offline operations on HTML files.
+- **ScrapingManager class:** implemented in `src/wiki_scraper/scraping_manager_class.py`. More high-level version of Scraper. Creates Scrapers and gets results from their methods and writes them to the desired files, handles crawler logic etc. Can perform offline operations on HTML files as well.
+- **src/wiki_scraper/analyze_relative_word_frequency.py:** Contains functions responsible for analyzing data (creating charts and dataframes with comparisions of words frequencies between counted articles and English language).
+- **WebScraperController class:** implemented in `src/wiki_scraper/web_scraper_controller.py`. Takes appropriate actions depending on arguments provided (most high-level module of the project)
 
 ---
 
