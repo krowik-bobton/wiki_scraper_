@@ -3,7 +3,7 @@ import os
 import time
 from collections import Counter
 from queue import Queue
-from scraper_class import Scraper
+from .scraper_class import Scraper
 
 
 def save_counter_to_json(counter, json_path):
@@ -43,7 +43,8 @@ def load_counter_from_json(json_path):
 class ScrapingManager:
     # Path to a JSON file which contains numbers of occurrences for words
     # encountered when running count_words
-    DEFAULT_JSON_PATH='./word-counts.json'
+    DEFAULT_JSON_PATH = os.path.join(os.getcwd(), 'data', 'word-counts.json')
+
     def __init__(self, wiki_url, use_local_html_file_instead=False):
         """
         Initialize ScrapingManager class
@@ -58,7 +59,7 @@ class ScrapingManager:
                          waiting_time=0.0, json_path=DEFAULT_JSON_PATH):
         """
         Automatically traverses through linked articles starting from the
-        given phrase, counts words in each article and processes linked
+        given phrase, counts words in each article, and processes linked
         articles up to the maximum depth. Creates or updates JSON file with
         counted values.
 
@@ -138,7 +139,7 @@ class ScrapingManager:
     def count_words(self, phrase=None, json_path=DEFAULT_JSON_PATH):
         """
         Counts the occurrences of words in the specified phrase or in a locally
-        provided HTML file, updates or creates the JSON file with the counter.
+        provided HTML file, updates, or creates the JSON file with the counter.
 
         :param phrase: The phrase to count words from, or None if using a local
             HTML file instead.
@@ -217,9 +218,10 @@ class ScrapingManager:
         df = my_scraper.get_table(table_number, first_row_header)
         if df is not None:
             # Write df into csv file
-            csv_name = csv_name.replace(" ", "_")
+            csv_file = f"{csv_name.replace(" ", "_")}.csv"
+            csv_file = os.path.join(os.getcwd(), "data", csv_file)
             try:
-                df.to_csv(f"{csv_name}.csv", index=True)
+                df.to_csv(csv_file, index=True)
             except Exception as e:
                 raise Exception(f"Couldn't save table to {csv_name}.csv. Error : {e}")
         # Can be None if df is None

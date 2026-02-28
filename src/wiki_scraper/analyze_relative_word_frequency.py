@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from wordfreq import top_n_list, word_frequency
 
+DEFAULT_JSON_PATH = os.path.join(os.getcwd(), 'data', 'word-counts.json')
+
 def load_word_counts(json_path):
     """
     Load word counts from a JSON file.
@@ -135,7 +137,7 @@ def create_chart(df, chart_path):
     finally:
         plt.close()
 
-def analyze_relative_word_frequency(mode, count, json_path='./word-counts.json', chart_path=None):
+def analyze_relative_word_frequency(mode, count, json_path=None, chart_path=None):
     """
     Analyzes the relative word frequency from a JSON file and prints
     frequency distribution. Optionally, generates and saves a chart
@@ -153,6 +155,8 @@ def analyze_relative_word_frequency(mode, count, json_path='./word-counts.json',
                        chart will be generated.
     :return: None
     """
+    if json_path is None:
+        json_path = DEFAULT_JSON_PATH
     if not json_path:
         raise ValueError(f"Invalid JSON path: {json_path}")
     word_counts_dict = load_word_counts(json_path)

@@ -1,5 +1,5 @@
 import argparse
-from web_scraper_controller_class import WebScraperController
+from src.wiki_scraper.web_scraper_controller_class import WebScraperController
 
 
 def parse_arguments():
@@ -18,12 +18,14 @@ def parse_arguments():
 
     action_group.add_argument(
         "--summary",
+        metavar="ARTICLE TITLE",
         type=str,
         help="Load and print first paragraph of an article."
     )
 
     action_group.add_argument(
         "--table",
+        metavar="ARTICLE TITLE",
         type=str,
         help="Load the table from an article to the CSV file "
              "and print numbers of occurrences of each word in the table"
@@ -32,13 +34,14 @@ def parse_arguments():
 
     action_group.add_argument(
         "--count-words",
+        metavar="ARTICLE TITLE",
         type=str,
         help="Count words in one article and update JSON file with values."
     )
 
-    # 4. Auto Count Words (Crawler)
     action_group.add_argument(
         "--auto-count-words",
+        metavar="ARTICLE TITLE",
         type=str,
         help="Count words in all linked articles up to provided depth"
              " (requires --depth)."
@@ -47,13 +50,15 @@ def parse_arguments():
     action_group.add_argument(
         "--analyze-relative-word-frequency",
         action="store_true",
-        help="Analyze frequencies of words in the article "
+        help="Analyze frequencies of words in the articles "
              " vs in the language (requires --mode and --count)"
+             " (frequencies of words in the articles are taken from a JSON file with values."
     )
 
     # Arguments for --table
     parser.add_argument(
         "--number",
+        metavar="NUMBER OF TABLE",
         type=int,
         default=None,
         help="Number of table to load (required for --table)."
@@ -67,6 +72,7 @@ def parse_arguments():
     # Arguments for --auto_count_words
     parser.add_argument(
         "--depth",
+        metavar="INTEGER VALUE OF DEPTH",
         type=int,
         default=None,
         help="Depth of the searching tree"
@@ -74,6 +80,7 @@ def parse_arguments():
     )
     parser.add_argument(
         "--wait",
+        metavar="NUMBER OF SECONDS",
         type=float,
         default=None,
         help="Time of waiting (in seconds) between processing sites"
@@ -90,6 +97,7 @@ def parse_arguments():
     )
     parser.add_argument(
         "--count",
+        metavar="NUMBER OF TOP WORDS",
         type=int,
         default=None,
         help="Number of top words to analyze (required for the analyze)"
@@ -97,6 +105,7 @@ def parse_arguments():
     )
     parser.add_argument(
         "--chart",
+        metavar="PATH",
         type=str,
         default=None,
         help="Path for saving the chart (optional)"

@@ -1,8 +1,13 @@
 import json
 import os
+import sys
 import unittest
-from scraper_class import Scraper
-from scraping_manager_class import load_counter_from_json
+
+# Add project root to sys.path to allow imports from src
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.wiki_scraper.scraper_class import Scraper
+from src.wiki_scraper.scraping_manager_class import load_counter_from_json
 
 class MyTestCase(unittest.TestCase):
 

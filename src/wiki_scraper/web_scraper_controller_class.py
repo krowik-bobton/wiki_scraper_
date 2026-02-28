@@ -1,13 +1,10 @@
 import pandas as pd
 
-from scraping_manager_class import ScrapingManager
-from analyze_relative_word_frequency import analyze_relative_word_frequency
+from .scraping_manager_class import ScrapingManager
+from .analyze_relative_word_frequency import analyze_relative_word_frequency
 
 class WebScraperController:
     BASE_URL = "https://bulbapedia.bulbagarden.net/wiki"
-    LICENSE_MESSAGE=(f"Wyjście programu na licencji BY-NC-SA stworzone "
-                     f"na podstawie artykułów dostępnych na "
-                     f"https://bulbapedia.bulbagarden.net/wiki.")
 
     def __init__(self, args):
         self.args = args
@@ -27,7 +24,6 @@ class WebScraperController:
             summary_text=self.scraping_manager.get_summary(self.args.summary)
             if summary_text:
                 print(summary_text)
-                print(self.LICENSE_MESSAGE)
             else:
                 print(f"Nothing found for {self.args.summary}")
 
@@ -57,11 +53,9 @@ class WebScraperController:
                 counts = pd.Series(cells_list).value_counts()
                 results_table = counts.to_frame(name="Number of occurrences")
                 print(results_table)
-                print(self.LICENSE_MESSAGE)
 
         elif self.args.count_words:
             self.scraping_manager.count_words(self.args.count_words)
-            print(self.LICENSE_MESSAGE)
 
         elif self.args.analyze_relative_word_frequency:
             # --mode and --count are required
@@ -77,8 +71,6 @@ class WebScraperController:
                 count=self.args.count,
                 chart_path=chart_path
             )
-            print(self.LICENSE_MESSAGE)
-
 
         elif self.args.auto_count_words:
             # --depth and --wait are required
@@ -94,8 +86,6 @@ class WebScraperController:
                 max_depth=self.args.depth,
                 waiting_time=self.args.wait
             )
-            print(self.LICENSE_MESSAGE)
-
 
         else:
             print("Couldn't recognize any relevant argument.")

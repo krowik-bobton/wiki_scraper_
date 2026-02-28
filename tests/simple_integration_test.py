@@ -1,6 +1,10 @@
 import os
 import sys
-from scraping_manager_class import ScrapingManager
+
+# Add project root to sys.path to allow imports from src
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.wiki_scraper.scraping_manager_class import ScrapingManager
 
 # Local, temporary html file
 html_file = "temporary_html_file.html"
