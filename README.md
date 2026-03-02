@@ -70,7 +70,7 @@ A recursive scraper that starts from a given article, counts its words, and then
   ```
 ### 5. Relative Word Frequency Analysis (`--analyze-relative-word-frequency`)
 Analyzes and compares the word frequencies stored in your local JSON file against the general frequency of those words in the English language (using the `wordfreq` library).
-
+All displayed frequencies are normalized for better comparability. The values are calculated by dividing the absolute frequency of each word by the maximum frequency found within the respective JSON (scraped data) and English language.
 - **Usage:** `--analyze-relative-word-frequency --mode <language|article> --count <NUMBER>`
 - **Required Arguments:**
   - `--analyze-relative-word-frequency`: Triggers the analysis.
